@@ -1,5 +1,28 @@
 # Changelog — BlueFairy_RecipesHyva
 
+## Unreleased
+
+### Tests
+
+- **The cross-package assertions that left with this package are back, here.**
+  `TheGuidesAndTheResolverMatchTheCoreTemplatesTest` carries them. What they prove: this package
+  replaces the core's Luma templates through one `TemplateResolver` map, and three things can drift
+  apart with nothing noticing - the map, the README table that documents it, and the core templates
+  the map's left-hand side names. **A map entry for a core template that no longer exists silently
+  stops resolving**, so a Hyvä shopper gets the Luma template: a broken page, not an error.
+  - Own files: the README states the same template count as the map and has one table row per
+    entry; it points at this package's vendor path and not the core's; `hyva_config_generate_before`
+    is both wired in `events.xml` and documented; the listing really navigates, and no document
+    claims otherwise; the install steps enable both modules.
+  - Against the installed core: **every template the resolver replaces exists in the core**, and
+    every template it maps to is shipped here.
+  - The map parse carries a floor of 10 entries, because every assertion is about the entries found
+    and an empty map - a renamed class, a changed quote style - would satisfy them all.
+- **No dev dependency was added.** `bluefairy/module-recipes` is already a hard `require` (^1.3), so
+  the core is in the Magento root's `vendor/`. `require-dev` would break `composer install` in this
+  public repository, because the core is not on public Packagist. A missing core **fails** rather
+  than skipping.
+
 ## 1.4.0 — 2026-11-27
 
 **This package is now free and open source under the MIT licence, and lives in its own public
