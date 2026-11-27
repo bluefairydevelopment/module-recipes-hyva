@@ -1,0 +1,247 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva recipe submission template — Alpine blueRecipeSubmit component.
+ * Replaces the Luma IIFE DOM manipulation with Alpine reactive arrays.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\Submit $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<script>
+function blueRecipeSubmit() {
+    return {
+        ingredients: [],
+        steps: [],
+        addIngredient() {
+            this.ingredients.push({ measure: '', label: '', type: '', url: '' });
+        },
+        removeIngredient(index) {
+            this.ingredients.splice(index, 1);
+        },
+        addStep() {
+            this.steps.push({ instruction: '' });
+        },
+        removeStep(index) {
+            this.steps.splice(index, 1);
+        },
+        ingredientsJson() {
+            return JSON.stringify(this.ingredients.map(i => ({
+                measure: i.measure,
+                label:   i.label,
+                type:    i.type,
+                url:     i.url
+            })));
+        },
+        stepsJson() {
+            return JSON.stringify(this.steps.map((s, i) => ({
+                sort_order:  i + 1,
+                instruction: s.instruction
+            })));
+        }
+    };
+}
+</script>
+
+<div class="blue-recipe-submit max-w-3xl mx-auto py-8" x-data="blueRecipeSubmit()">
+    <h1 class="mb-6 text-2xl font-bold text-gray-900"><?= $escaper->escapeHtml(__('Submit a Recipe')) ?></h1>
+
+    <?php if (!$block->canSubmit()): ?>
+        <div class="rounded-xl bg-yellow-50 border border-yellow-200 p-6">
+            <p class="mb-4 text-gray-700"><?= $escaper->escapeHtml(__('You must be logged in to submit a recipe.')) ?></p>
+            <a href="<?= $escaper->escapeUrl($block->getLoginUrl()) ?>"
+               class="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <?= $escaper->escapeHtml(__('Log In')) ?>
+            </a>
+        </div>
+    <?php else: ?>
+
+    <form action="<?= $escaper->escapeUrl($block->getSubmitUrl()) ?>"
+          method="post"
+          id="recipe-submit-form"
+          enctype="multipart/form-data"
+          class="space-y-8">
+
+        <?= $block->getBlockHtml('formkey') ?>
+
+        <!-- Basic Info -->
+        <fieldset class="rounded-xl border border-gray-200 p-6">
+            <legend class="mb-4 text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Basic Information')) ?></legend>
+            <div class="space-y-4">
+                <div>
+                    <label for="submit-title" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Recipe Title')) ?>
+                        <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input type="text"
+                           id="submit-title"
+                           name="title"
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                           required
+                           maxlength="255"/>
+                </div>
+                <div>
+                    <label for="submit-description" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Short Description')) ?>
+                    </label>
+                    <textarea id="submit-description"
+                              name="short_description"
+                              class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              rows="3"
+                              maxlength="1000"></textarea>
+                </div>
+                <div>
+                    <label for="submit-thumbnail" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Recipe Photo')) ?>
+                    </label>
+                    <input type="file"
+                           id="submit-thumbnail"
+                           name="thumbnail"
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                           accept="image/jpeg,image/png,image/gif,image/webp"/>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Times & Servings -->
+        <fieldset class="rounded-xl border border-gray-200 p-6">
+            <legend class="mb-4 text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Times &amp; Servings')) ?></legend>
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div>
+                    <label for="submit-prep-time" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Prep Time (min)')) ?>
+                    </label>
+                    <input type="number" id="submit-prep-time" name="prep_time"
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                           min="0" max="9999"/>
+                </div>
+                <div>
+                    <label for="submit-cook-time" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Cook Time (min)')) ?>
+                    </label>
+                    <input type="number" id="submit-cook-time" name="cook_time"
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                           min="0" max="9999"/>
+                </div>
+                <div>
+                    <label for="submit-servings-min" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Servings (min)')) ?>
+                    </label>
+                    <input type="number" id="submit-servings-min" name="servings_min"
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                           min="1" max="999"/>
+                </div>
+                <div>
+                    <label for="submit-servings-max" class="mb-1 block text-sm font-medium text-gray-700">
+                        <?= $escaper->escapeHtml(__('Servings (max)')) ?>
+                    </label>
+                    <input type="number" id="submit-servings-max" name="servings_max"
+                           class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                           min="1" max="999"/>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Ingredients -->
+        <fieldset class="rounded-xl border border-gray-200 p-6">
+            <legend class="mb-4 text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Ingredients')) ?></legend>
+            <div class="space-y-3 mb-4">
+                <template x-for="(ingredient, index) in ingredients" :key="index">
+                    <div class="flex flex-wrap gap-2 items-start">
+                        <input type="text"
+                               x-model="ingredient.measure"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Amount (e.g. 1 cup)')) ?>"
+                               aria-label="<?= $escaper->escapeHtmlAttr(__('Ingredient amount')) ?>"
+                               class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                               maxlength="50"/>
+                        <input type="text"
+                               x-model="ingredient.label"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Ingredient name')) ?>"
+                               aria-label="<?= $escaper->escapeHtmlAttr(__('Ingredient name')) ?>"
+                               class="flex-1 min-w-[8rem] rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                               maxlength="255"/>
+                        <input type="text"
+                               x-model="ingredient.type"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Type (e.g. produce)')) ?>"
+                               aria-label="<?= $escaper->escapeHtmlAttr(__('Ingredient type')) ?>"
+                               class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                               maxlength="100"/>
+                        <input type="url"
+                               x-model="ingredient.url"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Affiliate URL')) ?>"
+                               aria-label="<?= $escaper->escapeHtmlAttr(__('Affiliate URL, optional')) ?>"
+                               class="w-40 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                               maxlength="2048"/>
+                        <button type="button"
+                                @click="removeIngredient(index)"
+                                class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Remove ingredient')) ?>">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+            <button type="button"
+                    @click="addIngredient()"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-400 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <?= $escaper->escapeHtml(__('Add Ingredient')) ?>
+            </button>
+            <input type="hidden" name="ingredients_json" :value="ingredientsJson()"/>
+        </fieldset>
+
+        <!-- Steps -->
+        <fieldset class="rounded-xl border border-gray-200 p-6">
+            <legend class="mb-4 text-base font-semibold text-gray-900"><?= $escaper->escapeHtml(__('Instructions')) ?></legend>
+            <div class="space-y-3 mb-4">
+                <template x-for="(step, index) in steps" :key="index">
+                    <div class="flex gap-3 items-start">
+                        <span class="mt-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+                              x-text="index + 1"
+                              aria-hidden="true"></span>
+                        <textarea x-model="step.instruction"
+                                  placeholder="<?= $escaper->escapeHtmlAttr(__('Describe this step...')) ?>"
+                                  aria-label="<?= $escaper->escapeHtmlAttr(__('Step description')) ?>"
+                                  class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                  rows="2"
+                                  maxlength="2000"></textarea>
+                        <button type="button"
+                                @click="removeStep(index)"
+                                class="mt-0.5 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Remove step')) ?>">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+            <button type="button"
+                    @click="addStep()"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-400 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <?= $escaper->escapeHtml(__('Add Step')) ?>
+            </button>
+            <input type="hidden" name="steps_json" :value="stepsJson()"/>
+        </fieldset>
+
+        <?php /* The form has no Categories fieldset: the submit controller reads no
+             filter codes, so the form offers none. */ ?>
+
+        <div class="flex justify-end">
+            <button type="submit"
+                    class="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <?= $escaper->escapeHtml(__('Submit Recipe')) ?>
+            </button>
+        </div>
+
+    </form>
+
+    <?php endif; ?>
+</div>

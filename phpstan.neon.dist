@@ -1,0 +1,30 @@
+# static analysis for bluefairy/module-recipes-hyva.
+# Run from the package root, with MAGENTO_ROOT set:
+#   MAGENTO_ROOT=/path/to/magento /path/to/magento/vendor/bin/phpstan analyse
+parameters:
+    # THE LOWER BOUND OF THE COMPOSER CONSTRAINT, MADE SELF-POLICING.
+    # composer.json admits "~8.3.0||~8.4.0||~8.5.0", and a constraint is a claim
+    # about EVERY version it admits. Analysing at the LOWEST one turns that from
+    # an assertion into something the analysis fails on - an 8.4-only construct is
+    # reported here rather than at parse time on a customer's server.
+    # RAISE THIS ONLY WITH THE COMPOSER CONSTRAINT: they are one claim in two
+    # files, and the failure mode of them disagreeing is silent.
+    phpVersion: 80300
+    level: 5
+    paths:
+        # There is no Block/ directory: the Hyva template swap is done by
+        # Plugin/TemplateResolver. phpstan REFUSES
+        # to run on a path that is not there rather than skipping it, which is
+        # why this list has to follow a deletion.
+        - Observer
+        - Plugin
+        - registration.php
+    excludePaths:
+        # Shipped code only. Unit tests are PHPUnit's concern, and mocks defeat
+        # static typing.
+        - */Test/*
+        - */docs/*
+        - */node_modules/*
+    bootstrapFiles:
+        - Test/phpstan-bootstrap.php
+    treatPhpDocTypesAsCertain: false

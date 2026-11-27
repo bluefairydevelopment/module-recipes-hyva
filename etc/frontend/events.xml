@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!--
+        Registers view/frontend/tailwind with Hyva's config generator
+        so the theme's Tailwind build scans this module's 14 templates. Without
+        it every utility class appearing ONLY here is purged from the theme's
+        compiled CSS, and the element renders as though the class had never been
+        written - no console error, no 404. Whether anything looked broken
+        depended on whether the theme happened to use the same classes
+        elsewhere, which is luck and changes with the theme's markup.
+
+        REGISTERING IS NOT SUFFICIENT ON ITS OWN. This only puts the module into
+        the generator's INPUT. Per install, after deploying:
+            bin/magento hyva:config:generate
+            cd <theme>/web/tailwind && npm ci && npm run build
+            bin/magento cache:flush
+    -->
+    <event name="hyva_config_generate_before">
+        <observer name="BlueFairy_RecipesHyva" instance="BlueFairy\RecipesHyva\Observer\RegisterModuleForHyvaConfig"/>
+    </event>
+</config>

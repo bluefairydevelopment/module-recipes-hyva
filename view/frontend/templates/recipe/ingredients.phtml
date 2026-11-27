@@ -1,0 +1,154 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva ingredients template — Alpine ingredientCart component.
+ * AJAX add-to-cart with loading state and Hyva notification toast.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+use BlueFairy\Recipes\Api\Data\IngredientInterface;
+
+$ingredients = $block->getIngredients();
+
+if (!$ingredients->getSize()) {
+    return;
+}
+
+$recipe       = $block->getRecipe();
+$recipeId     = $recipe ? (int) $recipe->getRecipeId() : 0;
+$addToCartUrl = $block->getUrl('recipes/ajax/addtocart');
+
+$ingredientItems = $ingredients->getItems();
+$hasAffiliateIngredients = false;
+foreach ($ingredientItems as $ingredient) {
+    if ($ingredient->getType() === IngredientInterface::TYPE_AFFILIATE && $ingredient->getAffiliateUrl()) {
+        $hasAffiliateIngredients = true;
+        break;
+    }
+}
+
+?>
+<script>
+function blueIngredientCart() {
+    return {
+        loading: false,
+        success: false,
+        formKey: '',
+        addToCartUrl: <?= /* @noEscape */ json_encode($addToCartUrl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        recipeId: <?= /* @noEscape */ json_encode($recipeId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        init() {
+            this.formKey = document.querySelector('input[name="form_key"]')?.value
+                || document.cookie.match(/(?:^|;\s*)form_key=([^;]+)/)?.[1]
+                || '';
+        },
+        async addStoreIngredients() {
+            this.loading = true;
+            this.success = false;
+            try {
+                const body = new URLSearchParams({
+                    form_key: this.formKey,
+                    recipe_id: this.recipeId,
+                    type: 'store'
+                });
+                const resp = await fetch(this.addToCartUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: body.toString()
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    this.success = true;
+                    window.dispatchEvent(new CustomEvent('notification', {
+                        detail: { message: data.message || '<?= $escaper->escapeJs(__('Ingredients added to cart.')) ?>', type: 'success', timeout: 4000 }
+                    }));
+                } else {
+                    window.dispatchEvent(new CustomEvent('notification', {
+                        detail: { message: data.message || '<?= $escaper->escapeJs(__('Could not add ingredients.')) ?>', type: 'error', timeout: 5000 }
+                    }));
+                }
+            } catch (e) {
+                window.dispatchEvent(new CustomEvent('notification', {
+                    detail: { message: '<?= $escaper->escapeJs(__('An error occurred. Please try again.')) ?>', type: 'error', timeout: 5000 }
+                }));
+            } finally {
+                this.loading = false;
+            }
+        },
+        openAffiliateDrawer() {
+            window.dispatchEvent(new CustomEvent('open-affiliate-drawer'));
+        }
+    };
+}
+</script>
+<div
+    class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+    x-data="blueIngredientCart()"
+>
+    <h2 class="mb-4 text-xl font-bold text-gray-900">
+        <?= $escaper->escapeHtml(__('Ingredients')) ?>
+    </h2>
+
+    <ul class="mb-6 divide-y divide-gray-100">
+        <?php foreach ($ingredientItems as $ingredient): ?>
+            <li class="flex items-baseline gap-2 py-2 text-sm text-gray-700">
+                <?php if ($ingredient->getMeasure()): ?>
+                    <span class="min-w-[3.5rem] font-semibold text-gray-900">
+                        <?= $escaper->escapeHtml($ingredient->getMeasure()) ?>
+                    </span>
+                <?php endif; ?>
+                <span class="flex-1">
+                    <?php if ($ingredient->getType() === IngredientInterface::TYPE_AFFILIATE && $ingredient->getAffiliateUrl()): ?>
+                        <a href="<?= $escaper->escapeUrl($ingredient->getAffiliateUrl()) ?>"
+                           target="_blank"
+                           rel="noopener noreferrer sponsored"
+                           class="text-blue-600 underline decoration-dotted hover:decoration-solid">
+                            <?= $escaper->escapeHtml($ingredient->getLabel()) ?>
+                        </a>
+                    <?php else: ?>
+                        <?= $escaper->escapeHtml($ingredient->getLabel()) ?>
+                    <?php endif; ?>
+                </span>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap gap-3">
+        <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            @click="addStoreIngredients()"
+            :disabled="loading"
+            :aria-busy="loading"
+        >
+            <svg x-show="loading" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <svg x-show="!loading && !success" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <svg x-show="success" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span x-text="loading ? '<?= $escaper->escapeJs(__('Adding…')) ?>' : (success ? '<?= $escaper->escapeJs(__('Added!')) ?>' : '<?= $escaper->escapeJs(__('Add Store Ingredients to Cart')) ?>')"
+                  aria-live="polite"></span>
+        </button>
+
+        <?php if ($hasAffiliateIngredients): ?>
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                @click="openAffiliateDrawer()"
+                aria-haspopup="dialog"
+            >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+                <?= $escaper->escapeHtml(__('Shop Affiliate Ingredients')) ?>
+            </button>
+        <?php endif; ?>
+    </div>
+</div>

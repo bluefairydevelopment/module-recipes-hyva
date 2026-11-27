@@ -1,0 +1,60 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$nutritionCollection = $block->getNutrition();
+
+if ($nutritionCollection === null || !$nutritionCollection->getSize()) {
+    return;
+}
+
+/** @var \BlueFairy\Recipes\Model\Nutrition $nutrition */
+$nutrition = $nutritionCollection->getFirstItem();
+
+$rows = [
+    ['label' => __('Calories'),        'value' => $nutrition->getCalories(),      'unit' => 'kcal'],
+    ['label' => __('Fat'),             'value' => $nutrition->getFat(),           'unit' => 'g'],
+    ['label' => __('Saturated Fat'),   'value' => $nutrition->getSaturatedFat(),  'unit' => 'g'],
+    ['label' => __('Carbohydrates'),   'value' => $nutrition->getCarbohydrates(), 'unit' => 'g'],
+    ['label' => __('Sugar'),           'value' => $nutrition->getSugar(),         'unit' => 'g'],
+    ['label' => __('Fiber'),           'value' => $nutrition->getFiber(),         'unit' => 'g'],
+    ['label' => __('Protein'),         'value' => $nutrition->getProtein(),       'unit' => 'g'],
+    ['label' => __('Sodium'),          'value' => $nutrition->getSodium(),        'unit' => 'mg'],
+];
+
+$hasData = false;
+foreach ($rows as $row) {
+    if ($row['value'] !== null) {
+        $hasData = true;
+        break;
+    }
+}
+
+if (!$hasData) {
+    return;
+}
+?>
+<div class="blue-recipe-nutrition rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+    <h2 class="mb-2 text-xl font-bold text-gray-900"><?= $escaper->escapeHtml(__('Nutrition Information')) ?></h2>
+    <p class="mb-4 text-sm text-gray-500"><?= $escaper->escapeHtml(__('Per serving')) ?></p>
+    <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100">
+            <?php foreach ($rows as $row): ?>
+                <?php if ($row['value'] !== null): ?>
+                    <tr>
+                        <th class="py-2 text-left font-medium text-gray-700" scope="row">
+                            <?= $escaper->escapeHtml($row['label']) ?>
+                        </th>
+                        <td class="py-2 text-right text-gray-900">
+                            <?= $escaper->escapeHtml((string) $row['value']) ?>
+                            <span class="ml-0.5 text-gray-500"><?= $escaper->escapeHtml($row['unit']) ?></span>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,135 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva recipe detail page template.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$recipe = $block->getRecipe();
+
+if (!$recipe): ?>
+    <div class="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+        <p class="text-lg font-medium"><?= $escaper->escapeHtml(__('Recipe not found.')) ?></p>
+    </div>
+    <?php return;
+endif; ?>
+
+<article class="blue-recipe-view mx-auto max-w-4xl">
+
+    <!-- Hero Image / Video -->
+    <div class="relative mb-6 overflow-hidden rounded-2xl bg-gray-100 aspect-video">
+        <?php if ($recipe->getMediaType() === 'video' && $recipe->getMediaUrl()): ?>
+            <iframe
+                src="<?= $escaper->escapeUrl($recipe->getMediaUrl()) ?>"
+                <?php // sandbox is the second half of the embed control; the host allow-list is the first. ?>
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                title="<?= $escaper->escapeHtmlAttr($recipe->getTitle()) ?>"
+                class="absolute inset-0 h-full w-full"
+                allowfullscreen
+                loading="lazy"
+            ></iframe>
+        <?php else: ?>
+            <img
+                src="<?= $escaper->escapeUrl($block->getRecipeThumbnailUrl($recipe->getThumbnail())) ?>"
+                alt="<?= $escaper->escapeHtmlAttr($recipe->getTitle()) ?>"
+                class="h-full w-full object-cover"
+                loading="eager"
+                width="896" height="504"
+            />
+        <?php endif; ?>
+    </div>
+
+    <!-- Header -->
+    <header class="mb-6">
+        <h1 class="mb-3 text-3xl font-bold text-gray-900 sm:text-4xl">
+            <?= $escaper->escapeHtml($recipe->getTitle()) ?>
+        </h1>
+
+        <!-- Writer Info -->
+        <?php $writer = $block->getWriter(); ?>
+        <?php if ($writer): ?>
+            <a href="<?= $escaper->escapeUrl($block->getWriterUrl($writer->getUrlKey())) ?>"
+               class="mb-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
+                <img
+                    src="<?= $escaper->escapeUrl($block->getWriterAvatarUrl($writer->getAvatar())) ?>"
+                    alt="<?= $escaper->escapeHtmlAttr($writer->getNickname() ?: $writer->getName()) ?>"
+                    class="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
+                    loading="lazy"
+                    width="32" height="32"
+                />
+                <span class="font-medium">
+                    <?= $escaper->escapeHtml(__('By %1', $writer->getNickname() ?: $writer->getName())) ?>
+                </span>
+            </a>
+        <?php endif; ?>
+
+        <!-- Meta: Prep / Cook / Servings -->
+        <div class="mb-4 flex flex-wrap gap-4 text-sm text-gray-600">
+            <?php if ($recipe->getPrepTime()): ?>
+                <div class="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 font-medium text-blue-700">
+                    <span aria-hidden="true">&#9201;</span>
+                    <span><?= $escaper->escapeHtml(__('Prep')) ?>:</span>
+                    <span><?= $escaper->escapeHtml($block->formatDuration($recipe->getPrepTime())) ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($recipe->getCookTime()): ?>
+                <div class="flex items-center gap-1.5 rounded-full bg-orange-50 px-3 py-1.5 font-medium text-orange-700">
+                    <span aria-hidden="true">&#128338;</span>
+                    <span><?= $escaper->escapeHtml(__('Cook')) ?>:</span>
+                    <span><?= $escaper->escapeHtml($block->formatDuration($recipe->getCookTime())) ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($recipe->getServingsMin()): ?>
+                <div class="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 font-medium text-green-700">
+                    <span aria-hidden="true">&#127859;</span>
+                    <span><?= $escaper->escapeHtml(__('Serves')) ?>:</span>
+                    <span>
+                        <?php
+                        $servings = $recipe->getServingsMin();
+                        if ($recipe->getServingsMax() && $recipe->getServingsMax() !== $recipe->getServingsMin()) {
+                            $servings .= '–' . $recipe->getServingsMax();
+                        }
+                        echo $escaper->escapeHtml((string) $servings);
+                        ?>
+                    </span>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Short Description -->
+        <?php if ($recipe->getShortDescription()): ?>
+            <p class="mb-4 text-base leading-relaxed text-gray-600">
+                <?= $escaper->escapeHtml($recipe->getShortDescription()) ?>
+            </p>
+        <?php endif; ?>
+
+        <!-- Social Share -->
+        <?= $block->getChildHtml('blue.recipe.share') ?>
+    </header>
+
+    <!-- Ingredients Section -->
+    <section class="mb-8">
+        <?= $block->getChildHtml('blue.recipe.ingredients') ?>
+    </section>
+
+    <!-- Steps Section -->
+    <section class="mb-8">
+        <?= $block->getChildHtml('blue.recipe.steps') ?>
+    </section>
+
+    <!-- Nutrition Section -->
+    <section class="mb-8">
+        <?= $block->getChildHtml('blue.recipe.nutrition') ?>
+    </section>
+
+    <!-- Reviews Section -->
+    <section class="mb-8">
+        <?= $block->getChildHtml('blue.recipe.reviews') ?>
+    </section>
+
+</article>
+
+<!-- Affiliate Ingredients Drawer (off-canvas, outside main flow) -->
+<?= $block->getChildHtml('blue.recipe.affiliate.drawer') ?>

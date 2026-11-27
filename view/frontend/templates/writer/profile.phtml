@@ -1,0 +1,156 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva writer profile template — Tailwind layout.
+ *
+ * @var \BlueFairy\Recipes\Block\Writer\Profile $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$writer = $block->getWriter();
+
+if (!$writer): ?>
+    <div class="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+        <p class="text-lg font-medium"><?= $escaper->escapeHtml(__('Writer not found.')) ?></p>
+    </div>
+    <?php return;
+endif;
+
+$displayName = $writer->getNickname() ?: $writer->getName();
+?>
+
+<div class="mx-auto max-w-5xl">
+
+    <!-- Banner Image -->
+    <?php if ($writer->getWriterImage()): ?>
+        <div class="mb-6 h-48 overflow-hidden rounded-2xl bg-gray-100 sm:h-64">
+            <img
+                src="<?= $escaper->escapeUrl($block->getWriterImageUrl($writer->getWriterImage())) ?>"
+                alt="<?= $escaper->escapeHtmlAttr($displayName) ?>"
+                class="h-full w-full object-cover"
+                loading="lazy"
+                width="1024" height="256"
+            />
+        </div>
+    <?php endif; ?>
+
+    <!-- Writer Info -->
+    <div class="mb-10 flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left sm:items-start">
+        <!-- Avatar -->
+        <div class="shrink-0">
+            <img
+                src="<?= $escaper->escapeUrl($block->getWriterAvatarUrl($writer->getAvatar())) ?>"
+                alt="<?= $escaper->escapeHtmlAttr($displayName) ?>"
+                class="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-lg sm:h-28 sm:w-28"
+                loading="lazy"
+                width="112" height="112"
+            />
+        </div>
+
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+                <?= $escaper->escapeHtml($displayName) ?>
+            </h1>
+
+            <?php if ($writer->getAbout()): ?>
+                <p class="mt-2 text-sm leading-relaxed text-gray-600 max-w-prose">
+                    <?= $escaper->escapeHtml($writer->getAbout()) ?>
+                </p>
+            <?php endif; ?>
+
+            <!-- Social Links -->
+            <?php
+            $socialLinks = [
+                'website'   => ['label' => __('Website'),   'url' => $writer->getWebsiteLink(),   'icon' => 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'],
+                'youtube'   => ['label' => __('YouTube'),   'url' => $writer->getYoutubeLink(),   'icon' => 'M15 10l4.553-2.669A1 1 0 0121 8.232v7.536a1 1 0 01-1.447.901L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z'],
+                'facebook'  => ['label' => __('Facebook'),  'url' => $writer->getFacebookLink(),  'icon' => 'M17 2h-3a5 5 0 00-5 5v3H6v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z'],
+                'instagram' => ['label' => __('Instagram'), 'url' => $writer->getInstagramLink(), 'icon' => 'M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01M6.5 19.5h11a3 3 0 003-3v-11a3 3 0 00-3-3h-11a3 3 0 00-3 3v11a3 3 0 003 3z'],
+                'snapchat'  => ['label' => __('Snapchat'),  'url' => $writer->getSnapchatLink(),  'icon' => 'M12 2a5 5 0 00-5 5v2H5l-.5 2c-.083.333.083.5.5.5.5 0 1.5.5 1.5 1.5a3.5 3.5 0 01-3 3.5c.5.75 2 1 2.5 2.5s-.5 1.5.5 1.5c1.5 0 2.5-1 4.5-1s3 1 4.5 1c1 0 1-.5.5-1.5s2-1.75 2.5-2.5a3.5 3.5 0 01-3-3.5c0-1 1-1.5 1.5-1.5.417 0 .583-.167.5-.5L19 9h-2V7a5 5 0 00-5-5z'],
+            ];
+            $hasAny = array_filter($socialLinks, fn($s) => !empty($s['url']));
+            ?>
+            <?php if ($hasAny): ?>
+                <div class="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
+                    <?php foreach ($socialLinks as $key => $social): ?>
+                        <?php if (!empty($social['url'])): ?>
+                            <a
+                                href="<?= $escaper->escapeUrl($social['url']) ?>"
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-label="<?= $escaper->escapeHtmlAttr($social['label']) ?>"
+                            >
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= $escaper->escapeHtmlAttr($social['icon']) ?>"/>
+                                </svg>
+                                <?= $escaper->escapeHtml($social['label']) ?>
+                            </a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Recipe Grid -->
+    <div>
+        <h2 class="mb-5 text-xl font-bold text-gray-900">
+            <?= $escaper->escapeHtml(__('Recipes by %1', $displayName)) ?>
+        </h2>
+
+        <?php $recipes = $block->getRecipeCollection(); ?>
+        <?php if ($recipes->getSize() === 0): ?>
+            <p class="py-8 text-sm text-gray-500 italic">
+                <?= $escaper->escapeHtml(__('No recipes yet.')) ?>
+            </p>
+        <?php else: ?>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <?php foreach ($recipes as $recipe): ?>
+                    <article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-xl">
+                        <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>"
+                           class="block overflow-hidden aspect-video bg-gray-100"
+                           tabindex="-1">
+                            <img
+                                src="<?= $escaper->escapeUrl($block->getRecipeThumbnailUrl($recipe->getThumbnail())) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($recipe->getTitle()) ?>"
+                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                                width="400" height="225"
+                            />
+                        </a>
+                        <div class="flex flex-1 flex-col p-4">
+                            <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>">
+                                <h3 class="mb-1 text-base font-semibold text-gray-900 hover:text-blue-600 line-clamp-2">
+                                    <?= $escaper->escapeHtml($recipe->getTitle()) ?>
+                                </h3>
+                            </a>
+                            <?php if ($recipe->getShortDescription()): ?>
+                                <p class="mb-3 text-sm text-gray-500 line-clamp-2 flex-1">
+                                    <?= $escaper->escapeHtml($recipe->getShortDescription()) ?>
+                                </p>
+                            <?php endif; ?>
+                            <div class="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                                <?php if ($recipe->getPrepTime()): ?>
+                                    <span>&#9201; <?= $escaper->escapeHtml(__('Prep: %1 min', $recipe->getPrepTime())) ?></span>
+                                <?php endif; ?>
+                                <?php if ($recipe->getCookTime()): ?>
+                                    <span>&#128338; <?= $escaper->escapeHtml(__('Cook: %1 min', $recipe->getCookTime())) ?></span>
+                                <?php endif; ?>
+                                <?php if ($recipe->getServingsMin()): ?>
+                                    <span>&#127859; <?= $escaper->escapeHtml(__('Serves: %1', $recipe->getServingsMin())) ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if ($block->getPagerHtml()): ?>
+                <div class="mt-8 flex justify-center">
+                    <?= $block->getPagerHtml() ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+
+</div>

@@ -1,0 +1,22 @@
+/*
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ *
+ * Hyvä 1.4+ (Tailwind 4): "hyva-sources" imports this file INSTEAD OF scanning
+ * the module directory, so the sources must be named here or every utility
+ * unique to this module's templates is purged from the theme build - silently,
+ * with no console error and no 404.
+ *
+ * A GLOB IS ENOUGH FOR THIS MODULE, and the reason is worth stating because it
+ * is not "there are no dynamic classes". recipe/share.phtml assembles its class
+ * at RUNTIME from a PHP map, and recipe/reviews.phtml has three :class
+ * expressions. Tailwind's scanner is a plain-text scan of the file, and every
+ * token in both - bg-[#1877F2], from-[#833AB4], text-yellow-400, border-red-400
+ * and the rest - appears LITERALLY in the .phtml it scans. If a future change
+ * built a class name from a config value or a variable, the glob would stop
+ * covering it and an @source inline(...) safelist would be needed. There is a
+ * unit test asserting exactly that.
+ *
+ * Regenerate after installing or upgrading:
+ *   bin/magento hyva:config:generate && (cd <theme>/web/tailwind && npm run build)
+ */
+@source "../templates/**/*.phtml";

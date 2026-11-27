@@ -1,0 +1,235 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva recipe list template — Tailwind card grid with Alpine.js filters and search.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\ListRecipe $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$recipes   = $block->getRecipeCollection();
+$filters   = $block->getActiveFilters();
+$formUrl   = $block->getFilterFormUrl();
+$keyword   = $block->getSearchKeyword();
+$searchUrl = $block->getUrl('recipes/ajax/search');
+
+$filterParams = $block->getCurrentFilterParams();
+
+// Build initial selected filters map for Alpine
+$selectedFilters = [];
+foreach ($filters as $filter) {
+    $selectedId = $block->getSelectedOptionId($filter->getFilterCode());
+    $selectedFilters[$filter->getFilterCode()] = $selectedId !== 0 ? $selectedId : '';
+}
+?>
+<script>
+function blueRecipeList() {
+    return {
+        formUrl: <?= /* @noEscape */ json_encode($formUrl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        searchUrl: <?= /* @noEscape */ json_encode($searchUrl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        keyword: <?= /* @noEscape */ json_encode($keyword, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        filters: <?= /* @noEscape */ json_encode($selectedFilters, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        searchTimeout: null,
+        filterTimeout: null,
+        loading: false,
+        hasFilters() {
+            if (this.keyword.trim() !== '') return true;
+            return Object.values(this.filters).some(v => v !== '' && v !== null);
+        },
+        clearAll() {
+            this.keyword = '';
+            Object.keys(this.filters).forEach(k => { this.filters[k] = ''; });
+            window.location.href = this.formUrl;
+        },
+        submitSearch() {
+            const url = new URL(this.formUrl, window.location.origin);
+            if (this.keyword.trim()) url.searchParams.set('q', this.keyword.trim());
+            Object.entries(this.filters).forEach(([code, val]) => {
+                if (val !== '' && val !== null) url.searchParams.set('filter_' + code, val);
+            });
+            window.location.href = url.toString();
+        },
+        onFilterChange() {
+            clearTimeout(this.filterTimeout);
+            this.filterTimeout = setTimeout(() => { this.submitSearch(); }, 250);
+        },
+        onSearchInput() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => { this.submitSearch(); }, 600);
+        }
+    };
+}
+</script>
+<section class="blue-recipe-list py-8" x-data="blueRecipeList()">
+    <p class="mb-6">
+        <a class="text-blue-600 hover:underline"
+           href="<?= $escaper->escapeUrl($block->getWriterListUrl()) ?>">
+            <?= $escaper->escapeHtml(__('Browse recipe writers')) ?>
+        </a>
+    </p>
+    <!-- Filter / Search Toolbar -->
+    <div class="mb-6 flex flex-wrap gap-3 items-end">
+
+        <?php foreach ($filters as $filter): ?>
+            <?php $options = $block->getOptionsForFilter($filter); ?>
+            <?php if (count($options) > 0): ?>
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-700"
+                           for="filter_<?= $escaper->escapeHtmlAttr($filter->getFilterCode()) ?>">
+                        <?= $escaper->escapeHtml($filter->getType()) ?>
+                    </label>
+                    <select
+                        id="filter_<?= $escaper->escapeHtmlAttr($filter->getFilterCode()) ?>"
+                        name="filter_<?= $escaper->escapeHtmlAttr($filter->getFilterCode()) ?>"
+                        class="rounded-md border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        x-model="filters['<?= $escaper->escapeJs($filter->getFilterCode()) ?>']"
+                        @change="onFilterChange()"
+                    >
+                        <option value=""><?= $escaper->escapeHtml(__('All')) ?></option>
+                        <?php foreach ($options as $option): ?>
+                            <option value="<?= (int) $option->getOptionId() ?>">
+                                <?= $escaper->escapeHtml($option->getLabel()) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+        <?php endforeach; ?>
+
+        <!-- Keyword Search -->
+        <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
+            <label class="text-sm font-medium text-gray-700" for="recipe-search">
+                <?= $escaper->escapeHtml(__('Search')) ?>
+            </label>
+            <div class="relative">
+                <input
+                    type="text"
+                    id="recipe-search"
+                    name="q"
+                    class="w-full rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="<?= $escaper->escapeHtmlAttr(__('Search recipes…')) ?>"
+                    x-model="keyword"
+                    @input="onSearchInput()"
+                    @keydown.enter.prevent="submitSearch()"
+                />
+                <button
+                    type="button"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    @click="submitSearch()"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+                >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Clear Filters -->
+        <div class="flex items-end">
+            <button
+                type="button"
+                class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                x-show="hasFilters()"
+                x-cloak
+                @click="clearAll()"
+            >
+                <?= $escaper->escapeHtml(__('Clear')) ?>
+            </button>
+        </div>
+    </div>
+
+    <!-- Recipe Grid -->
+    <?php if ($recipes->getSize() > 0): ?>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <?php foreach ($recipes as $recipe): ?>
+                <article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-xl">
+                    <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>"
+                       class="block overflow-hidden aspect-video bg-gray-100"
+                       tabindex="-1">
+                        <img
+                            src="<?= $escaper->escapeUrl($block->getRecipeThumbnailUrl($recipe->getThumbnail())) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($recipe->getTitle()) ?>"
+                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            width="400" height="225"
+                        />
+                    </a>
+                    <div class="flex flex-1 flex-col p-4">
+                        <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>">
+                            <h3 class="mb-1 text-base font-semibold text-gray-900 hover:text-blue-600 line-clamp-2">
+                                <?= $escaper->escapeHtml($recipe->getTitle()) ?>
+                            </h3>
+                        </a>
+                        <?php if ($recipe->getShortDescription()): ?>
+                            <p class="mb-3 text-sm text-gray-500 line-clamp-2 flex-1">
+                                <?= $escaper->escapeHtml($recipe->getShortDescription()) ?>
+                            </p>
+                        <?php endif; ?>
+                        <?php /* The (int) IS LOAD-BEARING - see the Luma twin. getData()
+                                 returns a STRING, getWriterForCard() declares ?int under
+                                 strict_types, so the raw value is a TypeError and a 500. */ ?>
+                        <?php $cardWriter = $block->getWriterForCard((int) $recipe->getData('writer_id')); ?>
+                        <?php if ($cardWriter !== null): ?>
+                            <div class="mb-3 flex items-center gap-2">
+                                <img
+                                    class="h-6 w-6 rounded-full object-cover"
+                                    src="<?= $escaper->escapeUrl($cardWriter['avatar']) ?>"
+                                    alt=""
+                                    loading="lazy"
+                                    width="24" height="24"
+                                />
+                                <span class="text-xs text-gray-600">
+                                    <?= $escaper->escapeHtml($cardWriter['name']) ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        <div class="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                            <?php if ($recipe->getServingsMin()): ?>
+                                <span class="flex items-center gap-1">
+                                    <span aria-hidden="true">&#127859;</span>
+                                    <?php
+                                    $servings = $recipe->getServingsMin();
+                                    if ($recipe->getServingsMax() && $recipe->getServingsMax() !== $recipe->getServingsMin()) {
+                                        $servings .= '–' . $recipe->getServingsMax();
+                                    }
+                                    ?>
+                                    <?= $escaper->escapeHtml(__('%1 servings', $servings)) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($recipe->getPrepTime()): ?>
+                                <span class="flex items-center gap-1">
+                                    <span aria-hidden="true">&#9201;</span>
+                                    <?= $escaper->escapeHtml(__('Prep: %1 min', $recipe->getPrepTime())) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($recipe->getCookTime()): ?>
+                                <span class="flex items-center gap-1">
+                                    <span aria-hidden="true">&#128338;</span>
+                                    <?= $escaper->escapeHtml(__('Cook: %1 min', $recipe->getCookTime())) ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($block->getPagerHtml()): ?>
+            <div class="mt-8 flex justify-center">
+                <?= $block->getPagerHtml() ?>
+            </div>
+        <?php endif; ?>
+
+    <?php else: ?>
+        <div class="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+            <svg class="mb-4 h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.122m-6 0a2.25 2.25 0 001.5-2.122M9.75 14.5L5 14.5m4.75 0l4.5 0M5 14.5L3 17m0 0h18m-18 0l2-2.5m16 2.5l-2-2.5"/>
+            </svg>
+            <p class="text-lg font-medium"><?= $escaper->escapeHtml(__('No recipes found.')) ?></p>
+            <p class="mt-1 text-sm"><?= $escaper->escapeHtml(__('Try adjusting your filters or search term.')) ?></p>
+        </div>
+    <?php endif; ?>
+</section>

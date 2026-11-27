@@ -1,0 +1,28 @@
+{
+    "name": "bluefairy/module-recipes-hyva",
+    "description": "Magento 2 Recipe Management Extension — Hyva Frontend",
+    "type": "magento2-module",
+    "license": "MIT",
+    "require": {
+        "php": "~8.3.0||~8.4.0||~8.5.0",
+        "magento/framework": "~103.0.8",
+        "bluefairy/module-recipes": "^1.3",
+        "hyva-themes/magento2-theme-module": "^1.0"
+    },
+    "authors": [
+        {
+            "name": "Blue Fairy Development",
+            "email": "staff@bluefairydevelopment.com",
+            "homepage": "https://bluefairydevelopment.com",
+            "role": "Leader"
+        }
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "BlueFairy\\RecipesHyva\\": ""
+        }
+    }
+}

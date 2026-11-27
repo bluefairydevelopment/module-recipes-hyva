@@ -1,0 +1,63 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2026 Blue Fairy Development. All rights reserved.
+ *
+ * Writer listing - Hyva. Tailwind utilities only; no Alpine,
+ * because this page has no interactive state to hold.
+ *
+ * @var \BlueFairy\Recipes\Block\Writer\ListWriter $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$writers = $block->getWriters();
+?>
+<div class="container mx-auto px-4 py-8">
+    <?php /* page.main.title is removed on this handle. */ ?>
+    <h1 class="text-3xl font-semibold text-gray-900 mb-8">
+        <?= $escaper->escapeHtml(__('Recipe Writers')) ?>
+    </h1>
+
+    <?php if (!$writers->getSize()): ?>
+        <p class="text-gray-600"><?= $escaper->escapeHtml(__('There are no recipe writers to show yet.')) ?></p>
+    <?php else: ?>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0">
+            <?php foreach ($writers as $writer): ?>
+                <?php $displayName = $writer->getNickname() ?: $writer->getName(); ?>
+                <li class="border border-gray-200 rounded-lg p-6 text-center bg-white">
+                    <a class="block no-underline"
+                       href="<?= $escaper->escapeUrl($block->getWriterUrl($writer->getUrlKey())) ?>">
+                        <img class="w-24 h-24 rounded-full object-cover mx-auto mb-4"
+                             src="<?= $escaper->escapeUrl($block->getWriterAvatarUrl($writer->getAvatar())) ?>"
+                             alt="<?= $escaper->escapeHtmlAttr($displayName) ?>"
+                             loading="lazy"/>
+                        <span class="block text-lg font-medium text-gray-900">
+                            <?= $escaper->escapeHtml($displayName) ?>
+                        </span>
+                    </a>
+                    <?php $count = $block->getRecipeCount((int) $writer->getWriterId()); ?>
+                    <span class="block text-sm text-gray-500 mt-1">
+                        <?= $escaper->escapeHtml(__('%1 recipe(s)', $count)) ?>
+                    </span>
+                    <?php if ($writer->getAbout()): ?>
+                        <p class="text-sm text-gray-600 mt-3">
+                            <?= $escaper->escapeHtml($writer->getAbout()) ?>
+                        </p>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+
+    <?php $pagerHtml = $block->getPagerHtml(); ?>
+    <?php if ($pagerHtml): ?>
+        <div class="blue-recipe-list__pager">
+            <?= /** @noEscape */ $pagerHtml ?>
+        </div>
+    <?php endif; ?>
+
+    <p class="mt-8">
+        <a class="text-blue-600 hover:underline"
+           href="<?= $escaper->escapeUrl($block->getRecipeListUrl()) ?>">
+            <?= $escaper->escapeHtml(__('Back to all recipes')) ?>
+        </a>
+    </p>
+</div>

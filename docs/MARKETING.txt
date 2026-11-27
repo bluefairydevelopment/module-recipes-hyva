@@ -1,0 +1,56 @@
+BlueFairy_RecipesHyva — Marketing Content
+==========================================
+
+
+3-SENTENCE SUMMARY
+------------------
+
+BlueFairy_RecipesHyva is the Hyvä theme companion for BlueFairy_Recipes, free and open source under the MIT licence. It replaces all 14 Luma frontend templates with Tailwind CSS and Alpine.js equivalents, giving you a keyword search and filters on the recipe listing that submit themselves, reactive add-to-cart feedback for ingredient linking, and an off-canvas affiliate drawer. No layout XML changes are needed: a single TemplateResolver plugin auto-swaps templates when the Hyvä theme is active.
+
+
+HTML LONG DESCRIPTION
+---------------------
+
+<div class="recipes-hyva-extension-description">
+
+    <p class="lead">
+      The Hyvä companion for BlueFairy Recipes, free and open source under the MIT licence.
+      Drop it in alongside the core module and all 14 recipe frontend templates are automatically
+      replaced with Tailwind CSS + Alpine.js equivalents. No layout XML editing required.
+    </p>
+
+    <hr/>
+
+    <h2>What You Get</h2>
+    <ul>
+      <li><strong>14 Hyvä templates</strong> — recipe listing, recipe detail, writer listing, writer profile, ingredients, steps, nutrition, schema (JSON-LD), reviews, social share, submission form, featured widget, the product page tab, and the affiliate drawer. All rendered with Tailwind CSS utility classes.</li>
+      <li><strong>Self-submitting filter and search</strong> — the recipe listing reloads with the results about 600 ms after keyword typing stops and 250 ms after a taxonomy filter changes, so no button needs pressing.</li>
+      <li><strong>Reactive add-to-cart</strong> — Alpine.js manages the ingredient "Add Store Ingredients to Cart" button state: idle → loading spinner → success tick. No full-page refresh.</li>
+      <li><strong>Off-canvas affiliate drawer</strong> — affiliate ingredient links open in a smooth slide-in panel (links in the drawer carry <code>rel="nofollow"</code>; the links in the ingredient list carry <code>rel="sponsored"</code>). Opens as a dialog, closes with the Escape key and on an outside click.</li>
+      <li><strong>Hyvä-native layout handles</strong> — three dedicated handles (<code>hyva_blue_recipe_index_index</code>, <code>hyva_blue_recipe_index_view</code>, <code>hyva_blue_recipe_index_submit</code>) for Hyvä-specific layout targeting.</li>
+      <li><strong>Zero configuration</strong> — the <code>TemplateResolver</code> plugin detects the active theme and swaps templates automatically. No admin config changes or layout XML edits needed.</li>
+    </ul>
+
+    <h2>How It Works</h2>
+    <ol>
+      <li><strong>Install</strong> via Composer alongside the core module: <code>composer require bluefairy/module-recipes bluefairy/module-recipes-hyva</code></li>
+      <li><strong>Enable</strong> both modules: <code>bin/magento module:enable BlueFairy_Recipes BlueFairy_RecipesHyva</code></li>
+      <li><strong>Run</strong> <code>setup:upgrade && setup:di:compile && cache:flush</code>. The companion is live.</li>
+      <li><strong>Rebuild the theme CSS</strong>: run <code>bin/magento hyva:config:generate</code>, then your theme's Tailwind build. The module registers its own Tailwind source, so no manual source paths are needed.</li>
+    </ol>
+
+    <h2>Licensed With BlueFairy_Recipes</h2>
+    <p>
+      The licence agreement defines the licensed software as the packages BlueFairy_Recipes and
+      BlueFairy_RecipesHyva together. Install only the packages your storefront needs.
+    </p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li>BlueFairy_Recipes ^1.3</li>
+      <li>Hyvä Theme (<code>hyva-themes/magento2-theme-module ^1.0</code>)</li>
+      <li>Magento Open Source or Adobe Commerce 2.4.8 or 2.4.9</li>
+      <li>PHP 8.3, 8.4 or 8.5</li>
+    </ul>
+
+</div>

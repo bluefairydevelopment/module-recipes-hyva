@@ -1,0 +1,83 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva featured recipes widget template — Tailwind card grid.
+ *
+ * @var \BlueFairy\Recipes\Block\Widget\FeaturedRecipes $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$recipes = $block->getRecipeCollection();
+$title   = $block->getWidgetTitle();
+
+// An empty widget renders nothing rather than a title and a
+// "No recipes found." message on the homepage.
+if ($recipes->getSize() === 0) {
+    return;
+}
+?>
+<section class="blue-recipe-widget py-8">
+    <?php if ($title): ?>
+        <h2 class="mb-6 text-2xl font-bold text-gray-900">
+            <?= $escaper->escapeHtml($title) ?>
+        </h2>
+    <?php endif; ?>
+
+    <?php if ($recipes->getSize() > 0): ?>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <?php foreach ($recipes as $recipe): ?>
+                <article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-shadow hover:shadow-xl">
+                    <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>"
+                       class="block overflow-hidden aspect-video bg-gray-100"
+                       tabindex="-1">
+                        <img
+                            src="<?= $escaper->escapeUrl($block->getRecipeThumbnailUrl($recipe->getThumbnail())) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($recipe->getTitle()) ?>"
+                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            width="400" height="225"
+                        />
+                    </a>
+                    <div class="flex flex-1 flex-col p-4">
+                        <a href="<?= $escaper->escapeUrl($block->getRecipeUrl($recipe->getUrlKey())) ?>">
+                            <h3 class="mb-1 text-base font-semibold text-gray-900 hover:text-blue-600 line-clamp-2">
+                                <?= $escaper->escapeHtml($recipe->getTitle()) ?>
+                            </h3>
+                        </a>
+                        <?php if ($recipe->getShortDescription()): ?>
+                            <p class="mb-3 text-sm text-gray-500 line-clamp-2 flex-1">
+                                <?= $escaper->escapeHtml($recipe->getShortDescription()) ?>
+                            </p>
+                        <?php endif; ?>
+                        <div class="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                            <?php if ($recipe->getServingsMin()): ?>
+                                <span>
+                                    &#127859;
+                                    <?php
+                                    $servings = $recipe->getServingsMin();
+                                    if ($recipe->getServingsMax() && $recipe->getServingsMax() !== $recipe->getServingsMin()) {
+                                        $servings .= '–' . $recipe->getServingsMax();
+                                    }
+                                    ?>
+                                    <?= $escaper->escapeHtml(__('%1 servings', $servings)) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($recipe->getPrepTime()): ?>
+                                <span>
+                                    &#9201;
+                                    <?= $escaper->escapeHtml(__('Prep: %1 min', $recipe->getPrepTime())) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($recipe->getCookTime()): ?>
+                                <span>
+                                    &#128338;
+                                    <?= $escaper->escapeHtml(__('Cook: %1 min', $recipe->getCookTime())) ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>

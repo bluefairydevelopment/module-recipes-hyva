@@ -1,0 +1,127 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva affiliate drawer template — Alpine affiliateList off-canvas component.
+ * Triggered by 'open-affiliate-drawer' custom event from ingredientCart component.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+use BlueFairy\Recipes\Api\Data\IngredientInterface;
+
+$ingredients = $block->getIngredients();
+$affiliateIngredients = [];
+
+foreach ($ingredients as $ingredient) {
+    if ($ingredient->getType() === IngredientInterface::TYPE_AFFILIATE && $ingredient->getAffiliateUrl()) {
+        $affiliateIngredients[] = $ingredient;
+    }
+}
+
+if (empty($affiliateIngredients)) {
+    return;
+}
+?>
+<div
+    class="fixed inset-0 z-50"
+    x-data="{
+        open: false,
+        init() {
+            const handler = () => {
+                this.open = true;
+                this.$nextTick(() => { this.$refs.closeBtn?.focus(); });
+            };
+            window.addEventListener('open-affiliate-drawer', handler);
+            this.$cleanup(() => window.removeEventListener('open-affiliate-drawer', handler));
+        },
+        close() { this.open = false; }
+    }"
+    x-show="open"
+    x-cloak
+    @keydown.escape.window="close()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="affiliate-drawer-title"
+>
+    <!-- Backdrop -->
+    <div
+        class="absolute inset-0 bg-black/50 transition-opacity"
+        x-show="open"
+        x-transition:enter="ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="close()"
+        aria-hidden="true"
+    ></div>
+
+    <!-- Drawer Panel -->
+    <div
+        class="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl flex flex-col"
+        x-show="open"
+        x-transition:enter="transform transition ease-out duration-300"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transform transition ease-in duration-200"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+    >
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4">
+            <h3 id="affiliate-drawer-title" class="text-base font-semibold text-gray-900">
+                <?= $escaper->escapeHtml(__('Shop Affiliate Ingredients')) ?>
+            </h3>
+            <button
+                type="button"
+                class="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                @click="close()"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close affiliate ingredients drawer')) ?>"
+                x-ref="closeBtn"
+            >
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Ingredient List -->
+        <ul class="flex-1 overflow-y-auto divide-y divide-gray-100 px-4 py-2">
+            <?php foreach ($affiliateIngredients as $ingredient): ?>
+                <li class="flex items-center gap-3 py-3">
+                    <div class="flex-1 min-w-0">
+                        <?php if ($ingredient->getMeasure()): ?>
+                            <span class="mr-1 font-semibold text-sm text-gray-900">
+                                <?= $escaper->escapeHtml($ingredient->getMeasure()) ?>
+                            </span>
+                        <?php endif; ?>
+                        <span class="text-sm text-gray-700">
+                            <?= $escaper->escapeHtml($ingredient->getLabel()) ?>
+                        </span>
+                    </div>
+                    <a
+                        href="<?= $escaper->escapeUrl($ingredient->getAffiliateUrl()) ?>"
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Shop %1 (opens in new tab)', $ingredient->getLabel())) ?>"
+                    >
+                        <?= $escaper->escapeHtml(__('Shop Now')) ?>
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+
+        <!-- Footer -->
+        <div class="border-t border-gray-200 px-4 py-3">
+            <p class="text-xs text-gray-400">
+                <?= $escaper->escapeHtml(__('Affiliate links may earn us a commission at no extra cost to you.')) ?>
+            </p>
+        </div>
+    </div>
+</div>

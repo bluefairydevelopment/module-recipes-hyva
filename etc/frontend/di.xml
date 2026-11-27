@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\View\Element\Template">
+        <plugin name="bluefairy_recipeshyva_template_resolver"
+                type="BlueFairy\RecipesHyva\Plugin\TemplateResolver"
+                sortOrder="10"/>
+    </type>
+
+    <!-- Adds the Recipes link to the Hyva menu. The plugin targets a Hyva class, so it is
+         declared in this package, which requires hyva-themes/magento2-theme-module. -->
+    <type name="Hyva\Theme\ViewModel\Navigation">
+        <plugin name="blue_recipes_add_nav_link"
+                type="BlueFairy\RecipesHyva\Plugin\Navigation\AddRecipesLink"
+                sortOrder="100"/>
+    </type>
+</config>

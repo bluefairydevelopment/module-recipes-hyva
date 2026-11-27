@@ -1,0 +1,130 @@
+<?php declare(strict_types=1);/**
+ * Copyright © 2025 Blue Fairy Development. All rights reserved.
+ *
+ * Hyva social share template — Alpine recipeShare component.
+ * Uses native Web Share API with platform-specific fallbacks.
+ *
+ * @var \BlueFairy\Recipes\Block\Recipe\Share $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+if (!$block->isSocialShareEnabled()) {
+    return;
+}
+
+$recipe    = $block->getRecipe();
+$pageUrl   = $block->getUrl('', ['_current' => true]);
+$title     = $recipe ? (string) $recipe->getTitle() : '';
+$thumbnail = $recipe ? $block->getRecipeThumbnailUrl($recipe->getThumbnail()) : '';
+$platforms = $block->getPlatforms($pageUrl, $title, $thumbnail);
+
+if (!$platforms) {
+    return;
+}
+
+?>
+<script>
+function blueRecipeShare() {
+    return {
+        pageUrl: <?= /* @noEscape */ json_encode($pageUrl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        pageTitle: <?= /* @noEscape */ json_encode($title, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+        nativeShareSupported: false,
+        copied: false,
+        init() {
+            this.nativeShareSupported = !!navigator.share;
+        },
+        async shareNative() {
+            try {
+                await navigator.share({ title: this.pageTitle, url: this.pageUrl });
+            } catch (e) {
+                this.nativeShareSupported = false;
+            }
+        },
+        async copyToClipboard(url) {
+            if (!navigator.clipboard) return;
+            try {
+                await navigator.clipboard.writeText(url);
+                this.copied = true;
+                window.dispatchEvent(new CustomEvent('notification', {
+                    detail: { message: '<?= $escaper->escapeJs(__('Link copied to clipboard!')) ?>', type: 'success', timeout: 3000 }
+                }));
+                setTimeout(() => { this.copied = false; }, 3000);
+            } catch (e) {}
+        }
+    };
+}
+</script>
+<div
+    class="flex flex-wrap items-center gap-2 py-2"
+    x-data="blueRecipeShare()"
+>
+    <span class="text-sm font-medium text-gray-600 mr-1">
+        <?= $escaper->escapeHtml(__('Share:')) ?>
+    </span>
+
+    <!-- Native Share (shown when supported) -->
+    <button
+        type="button"
+        x-show="nativeShareSupported"
+        x-cloak
+        @click="shareNative()"
+        class="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Share this recipe')) ?>"
+    >
+        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+        </svg>
+        <?= $escaper->escapeHtml(__('Share')) ?>
+    </button>
+
+    <!-- Platform Fallback Buttons (shown when native share not supported) -->
+    <div x-show="!nativeShareSupported"
+         :inert="nativeShareSupported"
+         class="flex flex-wrap gap-2">
+        <?php foreach ($platforms as $platform): ?>
+            <?php
+            $platformName = $platform['name'];
+            $platformLabel = $platform['label'];
+            $platformUrl = $platform['url'];
+            $platformType = $platform['type'];
+
+            $colorMap = [
+                'facebook'  => 'bg-[#1877F2] hover:bg-[#1664D8]',
+                'twitter'   => 'bg-[#1DA1F2] hover:bg-[#1A8FD8]',
+                'pinterest' => 'bg-[#E60023] hover:bg-[#CC0020]',
+                'instagram' => 'bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] hover:opacity-90',
+                'copy'      => 'bg-gray-600 hover:bg-gray-700',
+            ];
+            $colorClass = $colorMap[$platformName] ?? 'bg-gray-500 hover:bg-gray-600';
+            ?>
+            <?php if ($platformType === 'copy'): ?>
+                <button
+                    type="button"
+                    @click="copyToClipboard('<?= $escaper->escapeJs($platformUrl) ?>')"
+                    class="inline-flex items-center gap-1.5 rounded-full <?= $escaper->escapeHtmlAttr($colorClass) ?> px-3.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-1"
+                    aria-label="<?= $escaper->escapeHtmlAttr($platformLabel) ?>"
+                >
+                    <svg x-show="!copied" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <svg x-show="copied" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span x-text="copied ? '<?= $escaper->escapeJs(__('Copied!')) ?>' : '<?= $escaper->escapeJs(ucfirst($platformName)) ?>'"></span>
+                </button>
+            <?php else: ?>
+                <a
+                    href="<?= $escaper->escapeUrl($platformUrl) ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 rounded-full <?= $escaper->escapeHtmlAttr($colorClass) ?> px-3.5 py-1.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-1"
+                    aria-label="<?= $escaper->escapeHtmlAttr($platformLabel) ?>"
+                >
+                    <?= $escaper->escapeHtml(ucfirst($platformName)) ?>
+                </a>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+</div>

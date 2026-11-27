@@ -1,0 +1,29 @@
+# What a merchant does NOT receive.
+#
+# This file has to live INSIDE the package directory, not only at the repository
+# root: `git archive` reads .gitattributes from within the tree it is archiving,
+# so in a monorepo a root-only file governs a whole-repo archive nobody
+# publishes while every real per-package zip still ships everything below it.
+Test/ export-ignore
+.gitattributes export-ignore
+# THIS SAID phpunit.xml.dist, AND NO SUCH FILE EXISTS.
+#
+# The rule named a thing nothing checks, so it silently did nothing and
+# phpunit.xml shipped to every merchant - measured in the artefact, not the
+# working tree: `git archive HEAD | tar -t` carried both packages' phpunit.xml
+# among 439 entries. The neighbouring phpstan and phpcs rules DO end in .dist
+# and were correctly excluded, which is the discriminator.
+#
+# It is worse than untidy. The shipped phpunit.xml declares
+# bootstrap="Test/bootstrap.php" and <directory>Test/Unit</directory>, and BOTH
+# are export-ignored - so a merchant receives a test configuration pointing at
+# paths that are not in their vendor tree. The same shape as export-ignoring
+# docs/ and stranding the images it referenced.
+#
+# The file was later renamed to phpunit.xml.dist, the name the CI gate and
+# PHPUnit itself look for; every documented command passes `-c phpunit.xml.dist`.
+# A developer's own uncommitted phpunit.xml override stays excluded too.
+phpunit.xml.dist export-ignore
+phpunit.xml export-ignore
+phpstan.neon.dist export-ignore
+phpcs.xml.dist export-ignore

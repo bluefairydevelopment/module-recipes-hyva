@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+    coding standard for BlueFairy_RecipesHyva. Run from the package root, using a
+    Magento installation's phpcs:
+
+        <magento-root>/vendor/bin/phpcs standard=phpcs.xml.dist .
+
+    (flag name written without its leading double hyphen above, because phpcs'
+    own XML parser rejects a literal double hyphen inside a comment.)
+
+    This ruleset is the package's coding-standard check, run with the unit tests and
+    static analysis before every release.
+
+    IT ALSO READS .phtml, WHICH IS WHY IT MATTERS MORE HERE THAN THE NAME
+    SUGGESTS. This package ships 28 templates between its two modules, and
+    before this file NOTHING examined them: phpstan analyses .php only, and the
+    unit suite never parses markup. Templates are where a form that emitted raw JSON into an HTML
+    attribute, which code review and the unit suite both missed.
+
+    Exclusions are limited to the usual non-module-specific cases:
+    docblock-format opinions and pure formatting sniffs that phpcbf can rewrite
+    without changing behaviour. Nothing here suppresses a sniff that could hide
+    a real defect - EmptyBlock and DiscouragedFunction are deliberately NOT
+    excluded, for that reason.
+-->
+<ruleset name="BlueFairyRecipesHyva">
+    <description>Magento 2 coding standard for BlueFairy_RecipesHyva.</description>
+
+    <rule ref="Magento2">
+        <exclude name="Magento2.Annotation.MethodAnnotationStructure"/>
+        <exclude name="Magento2.Annotation.MethodArguments"/>
+        <exclude name="Magento2.Commenting.ClassPropertyPHPDocFormatting"/>
+        <exclude name="Magento2.Commenting.ClassAndInterfacePHPDocFormatting"/>
+
+        <exclude name="PSR2.Methods.FunctionCallSignature"/>
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration"/>
+        <exclude name="Squiz.WhiteSpace.ScopeClosingBrace"/>
+        <exclude name="Squiz.ControlStructures.ControlSignature"/>
+        <exclude name="PEAR.ControlStructures.ControlSignature"/>
+        <exclude name="Generic.Files.LineLength"/>
+        <exclude name="Magento2.Whitespace.MultipleEmptyLines"/>
+    </rule>
+
+    <file>.</file>
+
+    <!--
+        JS AND CSS ARE NOT SCANNED, DELIBERATELY, AND THIS IS A GAP NOT A WIN.
+        phpcs itself reports "Scanning CSS/JS files is deprecated and support
+        will be removed in PHP_CodeSniffer 4.0", and the one finding the JS
+        sniffs produced here was FALSE: Magento2.Html.HtmlSelfClosingTags read
+        jQuery's standard escaping idiom, $('<div>').text(x).html(), as an
+        unclosed <div> inside a JavaScript string. Leaving it in would have put
+        a permanent false ERROR in a check that is only useful at zero.
+
+        What this costs: view/frontend/web/js is now checked by nothing at all.
+        That belongs on the Phase 0 blindness list, not in a suppression comment
+        pretending it does not exist.
+    -->
+    <exclude-pattern>*.js</exclude-pattern>
+    <exclude-pattern>*.css</exclude-pattern>
+    <exclude-pattern>*.less</exclude-pattern>
+
+    <exclude-pattern>*/docs/*</exclude-pattern>
+    <exclude-pattern>*/.idea/*</exclude-pattern>
+    <exclude-pattern>*/.cache/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+
+    <arg name="extensions" value="php,phtml"/>
+    <arg name="colors"/>
+    <arg value="p"/>
+</ruleset>
